@@ -1,11 +1,11 @@
 <?php
 /**
  * Plugin Name: SocioRouter
- * Plugin URI: https://exts.kr/go/sociorouter
+ * Plugin URI: https://exts.kr/go/home
  * Description: SocioRouter Social Network Integration and Management Solution
  * Version: 1.0.0
- * Author: DATABEAN. Co. Ltd.
- * Author URI: https://exts.kr/go/databean
+ * Author: Go Namhyeon <gnh1201@gmail.com>
+ * Author URI: https://exts.kr/go/home
  * License: EULA
  */
 
