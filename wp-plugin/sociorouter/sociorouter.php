@@ -6,7 +6,7 @@
  * Version: 1.0.0
  * Author: Go Namhyeon <gnh1201@gmail.com>
  * Author URI: https://exts.kr/go/sociorouter
- * License: GPL
+ * License: GPLv3
  */
 
 if ( !function_exists( 'add_action' ) ) {
