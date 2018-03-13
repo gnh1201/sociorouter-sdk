@@ -8,7 +8,7 @@
  
 var sociorouter_accesstoken = "";
 var sociorouter_logged_in = false;
-var sociorouter_base_url = "https://exts.kr/3rdparty/sociorouter/dashboard/";
+var sociorouter_base_url = "https://example.org/";
 var sociorouter_content_el; // for global
 var sociorouter_content_name; // for global
 
@@ -128,7 +128,7 @@ function sociorouter_remotelogin(username) {
 function sociorouter_redirect() {
 	var current_uri = window.location.href;
 	if(current_uri.indexOf("/sociorouter") > -1) {
-		window.location.href = "https://exts.kr/3rdparty/sociorouter/dashboard/?from=" + sociorouter_get_current_domain();
+		window.location.href = "https://example.org/?from=" + sociorouter_get_current_domain();
 	}
 }
 
@@ -197,7 +197,7 @@ function sociorouter_form_plugin(data) {
 		// show loading image
 		if(!loading_el.firstChild) {
 			var img_obj = document.createElement("img");
-			img_obj.src = "https://exts.kr/3rdparty/sociorouter/dashboard/assets/img/loading.gif";
+			img_obj.src = "https://example.org/assets/img/loading.gif";
 			img_obj.alt = "loading";
 			loading_el.appendChild(img_obj);
 		}
@@ -230,7 +230,7 @@ function sociorouter_form_plugin(data) {
 		switch(name) {
 			case "appendto":
 				var iframe_obj = document.createElement("iframe");
-				iframe_obj.src = "https://exts.kr/3rdparty/sociorouter/dashboard/?route=sdk&action=connect";
+				iframe_obj.src = "https://example.org/?route=sdk&action=connect";
 				iframe_obj.width = "450px";
 				iframe_obj.height = "150px";
 				iframe_obj.style.margin = "0";
