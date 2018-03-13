@@ -1,13 +1,14 @@
 /*
- * @file tracker.js
+ * @file sdk.js
  * @description SocioRouter code snippet for customer
  * @author Go Namhyeon <gnh1201@gmail.com>
  * @date 2018-02-21
+ * @license GPLv3
  */
  
 var sociorouter_accesstoken = "";
 var sociorouter_logged_in = false;
-var sociorouter_base_url = "https://myhost/3rdparty/sociorouter/dashboard/";
+var sociorouter_base_url = "https://exts.kr/3rdparty/sociorouter/dashboard/";
 var sociorouter_content_el; // for global
 var sociorouter_content_name; // for global
 
@@ -127,7 +128,7 @@ function sociorouter_remotelogin(username) {
 function sociorouter_redirect() {
 	var current_uri = window.location.href;
 	if(current_uri.indexOf("/sociorouter") > -1) {
-		window.location.href = "https://myhost/3rdparty/sociorouter/dashboard/?from=" + sociorouter_get_current_domain();
+		window.location.href = "https://exts.kr/3rdparty/sociorouter/dashboard/?from=" + sociorouter_get_current_domain();
 	}
 }
 
