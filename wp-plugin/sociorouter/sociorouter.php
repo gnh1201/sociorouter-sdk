@@ -1,12 +1,12 @@
 <?php
 /**
  * Plugin Name: SocioRouter
- * Plugin URI: https://exts.kr/go/home
+ * Plugin URI: https://exts.kr/go/sociorouter
  * Description: SocioRouter Social Network Integration and Management Solution
  * Version: 1.0.0
  * Author: Go Namhyeon <gnh1201@gmail.com>
- * Author URI: https://exts.kr/go/home
- * License: EULA
+ * Author URI: https://exts.kr/go/sociorouter
+ * License: LPL
  */
 
 if ( !function_exists( 'add_action' ) ) {
@@ -17,7 +17,7 @@ if ( !function_exists( 'add_action' ) ) {
 function sociorouter_tracker($atts = [], $content = null, $tag = '') {
 	$html = "";
 
-	$my_script_url = "aHR0cHM6Ly9teWhvc3QvM3JkcGFydHkvc29jaW9yb3V0ZXIvZGFzaGJvYXJkL2Fzc2V0cy9qcy9zZGsuanM=";
+	$my_script_url = "aHR0cHM6Ly9leHRzLmtyLzNyZHBhcnR5L3NvY2lvcm91dGVyL2Rhc2hib2FyZC9hc3NldHMvanMvc2RrLmpz";
 	$my_current_user = wp_get_current_user();
 	$my_user_name = "";
 	if(is_user_logged_in()) {
@@ -50,7 +50,7 @@ function sociorouter_form_plugin($atts = [], $content = null, $tag = '') {
 	}
 
 	$html .= "<script type='text/javascript'>sociorouter_plugin('form_plugin', '{$data}');</script>\n";
-	//$html .= '<iframe style="margin: 0; padding: 0; border: 0; width: 450px; height: 150px;" src="https://myhost/3rdparty/sociorouter/dashboard/?route=sdk&action=connect" width="450" height="150"></iframe>';
+	//$html .= '<iframe style="margin: 0; padding: 0; border: 0; width: 450px; height: 150px;" src="https://exts.kr/3rdparty/sociorouter/dashboard/?route=sdk&amp;action=connect" width="450" height="150"></iframe>';
 
 	return $html;
 }
