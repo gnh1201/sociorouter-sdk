@@ -1,0 +1,2 @@
+[sociorouter_tracker]
+[sociorouter_form_plugin data=@appendto:dom.id.sociorouter_form_plugin,@formid:dom.id.ap-form-1,@title:dom.name.ap_form_post_title,@content:js.window.tinymce$ap_form_post_content_1,@submit:dom.class.ap-pro-submit-btn]
