@@ -128,7 +128,7 @@ function sociorouter_remotelogin(username) {
 function sociorouter_redirect() {
 	var current_uri = window.location.href;
 	if(current_uri.indexOf("/sociorouter") > -1) {
-		window.location.href = "https://example.org/?from=" + sociorouter_get_current_domain();
+		window.location.href = sociorouter_base_url + "?from=" + sociorouter_get_current_domain();
 	}
 }
 
@@ -197,7 +197,7 @@ function sociorouter_form_plugin(data) {
 		// show loading image
 		if(!loading_el.firstChild) {
 			var img_obj = document.createElement("img");
-			img_obj.src = "https://example.org/assets/img/loading.gif";
+			img_obj.src = sociorouter_base_url + "assets/img/loading.gif";
 			img_obj.alt = "loading";
 			loading_el.appendChild(img_obj);
 		}
@@ -230,7 +230,7 @@ function sociorouter_form_plugin(data) {
 		switch(name) {
 			case "appendto":
 				var iframe_obj = document.createElement("iframe");
-				iframe_obj.src = "https://example.org/?route=sdk&action=connect";
+				iframe_obj.src = sociorouter_base_url + "?route=sdk&action=connect";
 				iframe_obj.width = "450px";
 				iframe_obj.height = "150px";
 				iframe_obj.style.margin = "0";
@@ -298,8 +298,9 @@ function sociorouter_form_plugin(data) {
 		form_el.onsubmit = function() {
 			var content_el = sociorouter_get_content_el();
 
-			//alert("submitted");
-			//alert(content_el.getContent());
+			alert("submitted");
+			//alert("title: " + title_el.value);
+			alert("content: " + content_el.getContent());
 		};
 	}
 }
