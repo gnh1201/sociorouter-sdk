@@ -8,20 +8,20 @@
 
 var sociorouter_accesstoken = "";
 var sociorouter_logged_in = false;
-var sociorouter_base_url = "https://example.org/";
+var sociorouter_base_url = "https://exts.kr/3rdparty/sociorouter/dashboard/";
 var sociorouter_retry_interval = 300;
 var sociorouter_content_el; // for global
 var sociorouter_content_name; // for global
 
 // load jquery
 function load_jquery() {
-	var obj_head = document.getElementsByTagName("head")[0];
-	var obj_script = document.createElement("script");
-	obj_script.type = "text/javascript";
-	obj_script.src = "https://code.jquery.com/jquery-3.3.1.min.js";
-	obj_head.appendChild(obj_script);
-
 	if(!("jQuery" in window)) {
+		var obj_head = document.getElementsByTagName("head")[0];
+		var obj_script = document.createElement("script");
+		obj_script.type = "text/javascript";
+		obj_script.src = "https://code.jquery.com/jquery-3.3.1.min.js";
+		obj_head.appendChild(obj_script);
+
 		setTimeout(function() {
 			load_jquery();
 		}, sociorouter_retry_interval);
