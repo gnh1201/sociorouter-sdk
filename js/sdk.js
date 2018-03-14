@@ -5,10 +5,11 @@
  * @date 2018-02-21
  * @license GPLv3
  */
- 
+
 var sociorouter_accesstoken = "";
 var sociorouter_logged_in = false;
 var sociorouter_base_url = "https://example.org/";
+var sociorouter_retry_interval = 300;
 var sociorouter_content_el; // for global
 var sociorouter_content_name; // for global
 
@@ -16,15 +17,14 @@ var sociorouter_content_name; // for global
 function load_jquery() {
 	var obj_head = document.getElementsByTagName("head")[0];
 	var obj_script = document.createElement("script");
-	
-	if(!("jQuery" in window)) {
-		obj_script.type = "text/javascript";
-		obj_script.src = "https://code.jquery.com/jquery-3.3.1.min.js";
-		obj_head.appendChild(obj_script);
+	obj_script.type = "text/javascript";
+	obj_script.src = "https://code.jquery.com/jquery-3.3.1.min.js";
+	obj_head.appendChild(obj_script);
 
+	if(!("jQuery" in window)) {
 		setTimeout(function() {
 			load_jquery();
-		}, 3000);
+		}, sociorouter_retry_interval);
 	}
 }
 
@@ -73,7 +73,7 @@ function sociorouter_request_accesstoken() {
 function sociorouter_remotelogin_complete(value) {
 	if(value != "success") {
 		sociorouter_request_accesstoken();
-		setTimeout(sociorouter_remotelogin, 300);
+		setTimeout(sociorouter_remotelogin, sociorouter_retry_interval);
 	} else {
 		sociorouter_logged_in = true;
 	}
@@ -105,7 +105,7 @@ function sociorouter_remotelogin(username) {
 			sociorouter_request_accesstoken();
 			setTimeout(function() {
 				sociorouter_remotelogin(remotelogin_username);
-			}, 300);
+			}, sociorouter_retry_interval);
 
 			return;
 		} else {
@@ -167,7 +167,7 @@ function sociorouter_set_content_el(js_type, js_value) {
 		} else {
 			setTimeout(function() {
 				sociorouter_set_content_el(js_type);
-			}, 300);
+			}, sociorouter_retry_interval);
 		}
 	}
 }
@@ -192,7 +192,7 @@ function sociorouter_form_plugin(data) {
 	if(sociorouter_logged_in == false) {
 		setTimeout(function() {
 			sociorouter_form_plugin(data);
-		}, 300);
+		}, sociorouter_retry_interval);
 
 		// show loading image
 		if(!loading_el.firstChild) {
@@ -244,6 +244,8 @@ function sociorouter_form_plugin(data) {
 					appendto_el = document.getElementById(dom_id);
 				} else if(expr_type == "dom.class") {
 					appendto_el = document.getElementsByClassName(dom_class)[0];
+				} else if(expr_type == "dom.name") {
+					appendto_el = document.getElementsByName(dom_name)[0];
 				}
 
 				appendto_el.appendChild(iframe_obj);
@@ -257,6 +259,8 @@ function sociorouter_form_plugin(data) {
 					title_el = document.getElementById(dom_id);
 				} else if(expr_type == "dom.class") {
 					title_el = document.getElementsByClassName(dom_class)[0];
+				} else if(expr_type == "dom.name") {
+					title_el = document.getElementsByName(dom_name)[0];
 				}
 
 				break;
@@ -279,6 +283,8 @@ function sociorouter_form_plugin(data) {
 					title_el = document.getElementById(dom_id);
 				} else if(expr_type == "dom.class") {
 					title_el = document.getElementsByClassName(dom_class)[0];
+				} else if(expr_type == "dom.name") {
+					title_el = document.getElementsByName(dom_name)[0];
 				}
 
 				break;
@@ -287,6 +293,8 @@ function sociorouter_form_plugin(data) {
 					submit_el = document.getElementById(dom_id);
 				} else if(expr_type == "dom.class") {
 					submit_el = document.getElementsByClassName(dom_class)[0];
+				} else if((expr_type == "dom.name") {
+					submit_el = document.getElementsByName(dom_class)[0];
 				}
 
 				break;
@@ -294,7 +302,7 @@ function sociorouter_form_plugin(data) {
 	}
 
 	// process by got elements
-	if("onsubmit" in window) {
+	if(form_el != null) {
 		form_el.onsubmit = function() {
 			var content_el = sociorouter_get_content_el();
 
