@@ -287,6 +287,13 @@ function sociorouter_form_plugin(data) {
 					title_el = document.getElementsByName(dom_name)[0];
 				}
 
+				// register getContent method
+				if(expr_type.startsWith("dom.") && title_el != null) {
+					title_el.getContent = function() {
+						return this.value;
+					};
+				}
+
 				break;
 			case "submit":
 				if(expr_type == "dom.id") {
