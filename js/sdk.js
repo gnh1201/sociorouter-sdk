@@ -8,7 +8,7 @@
 
 var sociorouter_accesstoken = "";
 var sociorouter_logged_in = false;
-var sociorouter_base_url = "https://exts.kr/3rdparty/sociorouter/dashboard/";
+var sociorouter_base_url = "https://example.org/";
 var sociorouter_retry_interval = 300;
 var sociorouter_content_el; // for global
 var sociorouter_content_name; // for global
@@ -293,7 +293,7 @@ function sociorouter_form_plugin(data) {
 					submit_el = document.getElementById(dom_id);
 				} else if(expr_type == "dom.class") {
 					submit_el = document.getElementsByClassName(dom_class)[0];
-				} else if((expr_type == "dom.name") {
+				} else if(expr_type == "dom.name") {
 					submit_el = document.getElementsByName(dom_class)[0];
 				}
 
@@ -307,7 +307,7 @@ function sociorouter_form_plugin(data) {
 			var content_el = sociorouter_get_content_el();
 
 			alert("submitted");
-			//alert("title: " + title_el.value);
+			alert("title: " + title_el.value);
 			alert("content: " + content_el.getContent());
 		};
 	}
