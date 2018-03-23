@@ -8,7 +8,7 @@
 
 var sociorouter_accesstoken = "";
 var sociorouter_logged_in = false;
-var sociorouter_base_url = "https://example.org/";
+var sociorouter_base_url = "https://example.org/sociorouter/dashboard/";
 var sociorouter_retry_interval = 300;
 var sociorouter_content_el;
 var sociorouter_content_name;
@@ -32,6 +32,28 @@ function load_jquery() {
 			load_jquery();
 		}, sociorouter_retry_interval);
 	}
+}
+
+function sociorouter_is_function(fn_name) {
+	var fn;
+	var ck_fn = [];
+	var is_fn = false;
+
+	if(fn_name in window) {
+		fn = window[fn_name];
+
+		ck_fn.push(typeof(fn) === "function");
+		ck_fn.push(fn instanceof Function);
+		ck_fn.push(fn.constructor === Function);
+		ck_fn.push(!!(fn && fn.constructor && fn.call && fn.apply));
+		ck_fn.push(fn && {}.toString.call(fn) === "[object Function]");
+
+		for(i in ck_fn) {
+			is_fn = is_fn || ck_fn[i];
+		}
+	}
+
+	return is_fn;
 }
 
 function sociorouter_make_id(len) {
@@ -94,23 +116,37 @@ function sociorouter_get_current_domain() {
 
 function sociorouter_is_empty(str) {
     return (str.length === 0 || !str.trim());
-};
+}
 
-function sociorouter_remotelogin(username) {
+function sociorouter_remotelogout() {
+	var remotelogout_uri = sociorouter_base_url + "?route=remotelogout";
+	sociorouter_jsonp(remotelogout_uri, "sociorouter_remotelogout_complete");
+ }
+
+function sociorouter_remotelogout_complete(value) {
+	// nothing
+}
+
+function sociorouter_remotelogin(username, data) {
 	var remotelogin_uri = sociorouter_base_url + "?route=remotelogin";
 	var remotelogin_accesstoken = sociorouter_get_accesstoken();
 	var remotelogin_username = username;
 	var remotelogin_domain = sociorouter_get_current_domain();
+	var remotelogin_role = (typeof(data) !== "undefined") ? data.role : "";
+	var remotelogin_email = (typeof(data) !== "undefined") ? data.email : "";
 	var remotelogin_params = {
 		"accesstoken": remotelogin_accesstoken,
 		"user_name": remotelogin_username,
-		"site_domain": remotelogin_domain
+		"site_domain": remotelogin_domain,
+		"role": remotelogin_role,
+		"email": remotelogin_email
 	};
+
 	var remorelogin_exec = function() {
 		if(sociorouter_is_empty(remotelogin_accesstoken)) {
 			sociorouter_request_accesstoken();
 			setTimeout(function() {
-				sociorouter_remotelogin(remotelogin_username);
+				sociorouter_remotelogin(remotelogin_username, data);
 			}, sociorouter_retry_interval);
 
 			return;
@@ -127,7 +163,7 @@ function sociorouter_remotelogin(username) {
 	if(!sociorouter_is_empty(username)) {
 		remorelogin_exec();
 	} else {
-		sociorouter_wp_login_rediret();
+		sociorouter_wp_login_redirect();
 	}
 
 	// set remote id
@@ -141,7 +177,7 @@ function sociorouter_redirect() {
 	}
 }
 
-function sociorouter_wp_login_rediret() {
+function sociorouter_wp_login_redirect() {
 	var remotelogin_domain = sociorouter_get_current_domain();
 	var current_uri = window.location.href;
 	if(current_uri.indexOf("/sociorouter") > -1) {
@@ -153,6 +189,9 @@ function sociorouter_plugin(plugin_name, data) {
 	switch(plugin_name) {
 		case "form_plugin":
 			sociorouter_form_plugin(data);
+			break;
+		case "group_plugin":
+			sociorouter_group_plugin(data);
 			break;
 		default:
 			break; // nothing
@@ -175,7 +214,7 @@ function sociorouter_set_content_el(js_type, js_value) {
 			sociorouter_content_el = content_el;
 		} else {
 			setTimeout(function() {
-				sociorouter_set_content_el(js_type);
+				sociorouter_set_content_el(js_type, js_value);
 			}, sociorouter_retry_interval);
 		}
 	}
@@ -185,9 +224,100 @@ function sociorouter_get_content_el() {
 	return sociorouter_content_el;
 }
 
-function sociorouter_form_plugin(data) {
+function sociorouter_set_site_url(site_url) {
+	sociorouter_site_url = site_url;
+}
+
+function sociorouter_get_site_url() {
+	return sociorouter_site_url;
+}
+
+function sociorouter_set_wp_url(wp_url) {
+	sociorouter_set_site_url(wp_url);
+	sociorouter_site_type = "wordpress";
+}
+
+function sociorouter_get_iframe_object(src, width, height) {
+	var iframe_src = src;
+	var iframe_obj = document.createElement("iframe");
+	var iframe_width = width, iframe_height = height;
+
+	iframe_obj.name = "sociorouter_object";
+	iframe_obj.src = iframe_src;
+	iframe_obj.width = iframe_width + "px";
+	iframe_obj.height = iframe_height + "px";
+	iframe_obj.style.margin = "0";
+	iframe_obj.style.padding = "0";
+	iframe_obj.style.border = "0";
+	iframe_obj.style.width = iframe_width + "px";
+	iframe_obj.style.height = iframe_height + "px";
+	
+	return iframe_obj;
+}
+
+function sociorouter_show_loading() {
+	// access loading image box
+	var loading_el = document.getElementById("sociorouter_loading");
+
+	// show loading image
+	if(!loading_el.firstChild) {
+		var img_obj = document.createElement("img");
+		img_obj.src = sociorouter_base_url + "assets/img/loading.gif";
+		img_obj.alt = "loading";
+		loading_el.appendChild(img_obj);
+	}
+	
+	return loading_el;
+}
+
+function sociorouter_hide_loading() {
+	// access loading image box
+	var loading_el = document.getElementById("sociorouter_loading");
+	loading_el.style.display = "none";
+
+	return loading_el;
+}
+
+function sociorouter_parse_data(data) {
 	var dataobj = {};
 	var datalines = data.split(',');
+
+	for(k in datalines) {
+		// IE 11 is not supported str.startsWith
+		if(datalines[k].indexOf("@") == 0) {
+			datakey = datalines[k].substring(1, datalines[k].indexOf(':'));
+			datavalue = datalines[k].substring(datalines[k].indexOf(':') + 1);
+			dataobj[datakey] = datavalue;
+		}
+	}
+	
+	return dataobj;
+}
+
+function sociorouter_form_validate(form_el) {
+	var fn_name = "";
+	var fn_data = "";
+	var fn = function(data) {
+		console.log("validation data: " + data);
+		return true;
+	};
+
+	if(sociorouter_site_type == "wordpress") {
+		fn_name = "check_form_submittable";
+		fn_data = form_el.id;
+	}
+
+	if(fn_name != "") {
+		if(sociorouter_is_function(fn_name)) {
+			fn = window[fn_name];
+		}
+	}
+
+	return fn(fn_data);
+}
+
+function sociorouter_form_plugin(data) {
+	var dataobj = sociorouter_parse_data(data);
 	var current_domain = sociorouter_get_current_domain();
 	var appendto_el;
 	var loading_el;
@@ -195,9 +325,7 @@ function sociorouter_form_plugin(data) {
 	var title_el;
 	var content_el;
 	var submit_el;
-
-	// access loading image box
-	loading_el = document.getElementById("sociorouter_loading");
+	var content_dom;
 
 	if(sociorouter_logged_in == false) {
 		setTimeout(function() {
@@ -205,30 +333,17 @@ function sociorouter_form_plugin(data) {
 		}, sociorouter_retry_interval);
 
 		// show loading image
-		if(!loading_el.firstChild) {
-			var img_obj = document.createElement("img");
-			img_obj.src = sociorouter_base_url + "assets/img/loading.gif";
-			img_obj.alt = "loading";
-			loading_el.appendChild(img_obj);
-		}
+		loading_el = sociorouter_show_loading();
 
 		return;
 	}
 
 	// when complete hide loading image
-	loading_el.style.display = "none";
-	
+	loading_el = sociorouter_hide_loading();
+
 	// set wordpress plugin url
 	if(sociorouter_site_type == "wordpress") {
 		sociorouter_wp_plugin_url = sociorouter_site_url + "/wp-content/plugins/sociorouter/";
-	}
-
-	for(k in datalines) {
-		if(datalines[k].startsWith('@')) {
-			datakey = datalines[k].substring(1, datalines[k].indexOf(':'));
-			datavalue = datalines[k].substring(datalines[k].indexOf(':') + 1);
-			dataobj[datakey] = datavalue;
-		}
 	}
 
 	// get access from elements
@@ -245,18 +360,7 @@ function sociorouter_form_plugin(data) {
 		switch(name) {
 			case "appendto":
 				var iframe_src = sociorouter_base_url + "?route=sdk&action=connect&remote_id=" + sociorouter_remote_id;
-				var iframe_obj = document.createElement("iframe");
-				var iframe_width = 450, iframe_height = 150;
-
-				iframe_obj.name = "sociorouter_object";
-				iframe_obj.src = iframe_src;
-				iframe_obj.width = iframe_width + "px";
-				iframe_obj.height = iframe_height + "px";
-				iframe_obj.style.margin = "0";
-				iframe_obj.style.padding = "0";
-				iframe_obj.style.border = "0";
-				iframe_obj.style.width = iframe_width + "px";
-				iframe_obj.style.height = iframe_height + "px";
+				var iframe_obj = sociorouter_get_iframe_object(iframe_src, 700, 300);
 
 				// register social plugin object
 				sociorouter_iframe_object = iframe_obj;
@@ -303,20 +407,45 @@ function sociorouter_form_plugin(data) {
 						sociorouter_set_content_el(js_type, js_value);
 					}
 				} else if(expr_type == "dom.id") {
-					content_el = document.getElementById(dom_id);
+					content_dom = document.getElementById(dom_id);
+					content_el = {
+						"getContent": function() {
+							return content_dom.value;
+						},
+						"value": content_dom.value
+					};
 				} else if(expr_type == "dom.class") {
-					content_el = document.getElementsByClassName(dom_class)[0];
+					content_dom = document.getElementsByClassName(dom_class)[0];
+					content_el = {
+						"getContent": function() {
+							return content_dom.value;
+						},
+						"value": content_dom.value
+					};
 				} else if(expr_type == "dom.name") {
-					content_el = document.getElementsByName(dom_name)[0];
+					content_dom = document.getElementsByName(dom_name)[0];
+					content_el = {
+						"getContent": function() {
+							return content_dom.value;
+						},
+						"value": content_dom.value
+					};
 				}
 
 				// register getContent method
-				if(expr_type.startsWith("dom.") && content_el != null) {
+				if(expr_type.indexOf("dom.") == 0 && content_el != null) {
+					sociorouter_content_el = content_el;
+				}
+
+				/*
+				// register getContent method
+				if(expr_type.indexOf("dom.") == 0 && content_el != null) {
 					content_el.getContent = function() {
 						return this.value;
 					};
 					sociorouter_content_el = content_el;
 				}
+				*/
 
 				break;
 			case "submit":
@@ -334,7 +463,7 @@ function sociorouter_form_plugin(data) {
 
 	// process by got elements
 	if(form_el != null) {
-		form_el.onsubmit = function(e) {
+		submit_el.onclick = function() {
 			var send_available = false;
 			var content_el = sociorouter_get_content_el();
 			var sdk_iframe = sociorouter_iframe_object;
@@ -343,13 +472,18 @@ function sociorouter_form_plugin(data) {
 			var $jq = ("jQuery" in window) ? jQuery : {};
 			var allow_ajax = ("ajax" in $jq);
 			var allow_return = false;
+			var allow_post = sociorouter_form_validate(form_el);
 
-			if(sociorouter_is_default_prevented == true) {
+			if(allow_post == false) {
+				alert("작성된 내용을 확인하여 주세요.");
+			} else {
+				// submit to new window
+				var sociorouter_sdk_window = window.open(window.location.href, "sociorouter_sdk_window");
+				form_el.target = "sociorouter_sdk_window";
+				sociorouter_sdk_window.focus();
+
+				// submit message on ajax
 				if(allow_ajax == true) {
-					// prevent default event
-					e.preventDefault();
-
-					// post by jQuery ajax
 					$jq.ajax({
 						type: "POST",
 						url: ajax_base_url,
@@ -359,47 +493,79 @@ function sociorouter_form_plugin(data) {
 							"remote_id": sociorouter_remote_id,
 							"domain": current_domain,
 							"title": title_el.value,
-							"content": content_el.getContent()
+							"content": content_el.getContent(),
+							"site_type": sociorouter_site_type,
+							"site_url": sociorouter_get_site_url()
 						},
 						success: function(req) {
-							alert("글이 정상적으로 게시되었습니다.");
+							sociorouter_sdk_window.alert("글이 정상적으로 게시되었습니다.");
 
-							sociorouter_is_default_prevented = false;
-							form_el.submit();
+							document.location.href = "about:blank";
+							var self_window = window.open("", "_self");
+							self_window.close();
 						}
 					});
-				} else {
-					sociorouter_is_default_prevented = false;
-					form_el.submit();
-				}
-			} else {
-				if(sociorouter_site_type == "wordpress") {
-					if("check_form_submittable" in window) {
-						allow_return = check_form_submittable(form_el.id);
-					} else {
-						allow_return = true;
-					}
-				} else {
-					allow_return = true;
 				}
 			}
-
-			//alert("submitted");
-			//alert("title: " + title_el.value);
-			//alert("content: " + content_el.getContent());
-
-			return allow_return;
 		};
 	}
 }
 
-function sociorouter_set_site_url(site_url) {
-	sociorouter_site_url = site_url;
-}
+function sociorouter_group_plugin(data) {
+	var dataobj = sociorouter_parse_data(data);
+	var loading_el;
+	var current_domain = sociorouter_get_current_domain();
 
-function sociorouter_set_wp_url(wp_url) {
-	sociorouter_set_site_url(wp_url);
-	sociorouter_site_type = "wordpress";
+	if(sociorouter_logged_in == false) {
+		setTimeout(function() {
+			sociorouter_group_plugin(data);
+		}, sociorouter_retry_interval);
+
+		// show loading image
+		loading_el = sociorouter_show_loading();
+
+		return;
+	}
+
+	// hide loading image
+	loading_el = sociorouter_hide_loading();
+
+	for(name in dataobj) {
+		var exprs = dataobj[name].split('.');
+		var expr_type = exprs[0] + '.' + exprs[1];
+		var expr_value = exprs[2];
+		var dom_id = (expr_type == "dom.id") ? expr_value : "";
+		var dom_class = (expr_type == "dom.class") ? expr_value : "";
+		var dom_name = (expr_type == "dom.name") ? expr_value : "";
+		var js_window = (expr_type == "js.window") ? expr_value : "";
+
+		switch(name) {
+			case "appendto":
+				var iframe_src = sociorouter_base_url
+									+ "?route=sdk&action=group&group_name="
+									+ current_domain
+									+ "&site_url="
+									+ encodeURI(sociorouter_site_url);
+				var iframe_obj = sociorouter_get_iframe_object(iframe_src, 700, 1000);
+
+				// register social plugin object
+				sociorouter_iframe_object = iframe_obj;
+
+				// validate DOM elements
+				if(expr_type == "dom.id") {
+					dom_id = (dom_id == "") ? "sociorouter_group_plugin" : dom_id;
+					appendto_el = document.getElementById(dom_id);
+				} else if(expr_type == "dom.class") {
+					appendto_el = document.getElementsByClassName(dom_class)[0];
+				} else if(expr_type == "dom.name") {
+					appendto_el = document.getElementsByName(dom_name)[0];
+				}
+
+				appendto_el.appendChild(iframe_obj);
+
+				break;
+		}
+	}
 }
 
 // load jquery
