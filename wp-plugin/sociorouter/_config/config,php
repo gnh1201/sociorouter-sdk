@@ -1,0 +1,9 @@
+<?php
+/*
+ * @file config.php
+ * @brief SocioRouter social plugin, configuration.
+ * @date 2018-03-15
+ * @auther Go Namhyeon <gnh1201@gmail.com>
+ */
+
+$sociorouter_base_url = "https://sociopost.net/";
