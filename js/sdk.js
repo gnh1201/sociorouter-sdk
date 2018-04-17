@@ -8,14 +8,14 @@
 
 var sociorouter_accesstoken = "";
 var sociorouter_logged_in = false;
-var sociorouter_base_url = "https://example.org/sociorouter/dashboard/";
+var sociorouter_base_url = "http://sociopost.net/";
 var sociorouter_retry_interval = 300;
 var sociorouter_content_el;
 var sociorouter_content_name;
 var sociorouter_iframe_object;
 var sociorouter_site_url = "";
 var sociorouter_site_type = "";
-var sociorouter_wp_plugin_url = "";
+var sociorouter_plugin_url = "";
 var sociorouter_remote_id = "";
 var sociorouter_is_default_prevented = true;
 
@@ -104,10 +104,10 @@ function sociorouter_remotelogin_complete(value) {
 		setTimeout(sociorouter_remotelogin, sociorouter_retry_interval);
 	} else {
 		sociorouter_logged_in = true;
-	}
 
-	// redirect to sociorouter
-	sociorouter_redirect();
+		// redirect to sociorouter
+		sociorouter_redirect();
+	}
 }
 
 function sociorouter_get_current_domain() {
@@ -172,17 +172,33 @@ function sociorouter_remotelogin(username, data) {
 
 function sociorouter_redirect() {
 	var current_uri = window.location.href;
+	var redirect_uri = encodeURI("http://" + sociorouter_get_current_domain());
 	if(current_uri.indexOf("/sociorouter") > -1) {
-		window.location.href = sociorouter_base_url + "?from=" + sociorouter_get_current_domain();
+		//window.location.href = sociorouter_base_url + "?_from=" + sociorouter_get_current_domain();
+		sociorouter_go_to(sociorouter_base_url + "?_from=" + redirect_uri);
 	}
 }
 
 function sociorouter_wp_login_redirect() {
 	var remotelogin_domain = sociorouter_get_current_domain();
 	var current_uri = window.location.href;
+	var redirect_uri = encodeURI(current_uri);
 	if(current_uri.indexOf("/sociorouter") > -1) {
-		window.location.href = "http://" + remotelogin_domain + "/wp-login.php?redirect_to=" + encodeURI(current_uri);
+		//window.location.href = "http://" + remotelogin_domain + "/wp-login.php?redirect_to=" + encodeURI(current_uri);
+		sociorouter_go_to("http://" + remotelogin_domain + "/wp-login.php?redirect_to=" + redirect_uri);
 	}
+}
+
+function sociorouter_go_to(url) {
+	var a = document.createElement("a");
+	if(!a.click) { //for IE
+		window.location = url;
+		return;
+	}
+	a.setAttribute("href", url);
+	a.style.display = "none";
+	document.body.appendChild(a);
+	a.click();
 }
 
 function sociorouter_plugin(plugin_name, data) {
@@ -343,7 +359,7 @@ function sociorouter_form_plugin(data) {
 
 	// set wordpress plugin url
 	if(sociorouter_site_type == "wordpress") {
-		sociorouter_wp_plugin_url = sociorouter_site_url + "/wp-content/plugins/sociorouter/";
+		sociorouter_plugin_url = sociorouter_site_url + "/wp-content/plugins/sociorouter/";
 	}
 
 	// get access from elements
@@ -468,19 +484,20 @@ function sociorouter_form_plugin(data) {
 			var content_el = sociorouter_get_content_el();
 			var sdk_iframe = sociorouter_iframe_object;
 			var sdk_window, sdk_el_title, sdk_el_content;
-			var ajax_base_url = sociorouter_wp_plugin_url + "/_ajax/";
+			var ajax_base_url = sociorouter_plugin_url + "/_ajax/";
 			var $jq = ("jQuery" in window) ? jQuery : {};
 			var allow_ajax = ("ajax" in $jq);
 			var allow_return = false;
 			var allow_post = sociorouter_form_validate(form_el);
+			var sdk_window_name = sociorouter_make_id(10);
 
 			if(allow_post == false) {
 				alert("작성된 내용을 확인하여 주세요.");
 			} else {
 				// submit to new window
-				var sociorouter_sdk_window = window.open(window.location.href, "sociorouter_sdk_window");
-				form_el.target = "sociorouter_sdk_window";
-				sociorouter_sdk_window.focus();
+				sdk_window = window.open(window.location.href, sdk_window_name);
+				form_el.target = sdk_window_name;
+				sdk_window.focus();
 
 				// submit message on ajax
 				if(allow_ajax == true) {
@@ -498,11 +515,17 @@ function sociorouter_form_plugin(data) {
 							"site_url": sociorouter_get_site_url()
 						},
 						success: function(req) {
-							sociorouter_sdk_window.alert("글이 정상적으로 게시되었습니다.");
+							var doc = document;
+							sdk_window.onload = function() {
+								// close old window
+								document.location.href = "about:blank";
+								document.write("Close this window.");
+								window.close();
 
-							document.location.href = "about:blank";
-							var self_window = window.open("", "_self");
-							self_window.close();
+								// focus new window
+								sdk_window.alert("글이 정상적으로 게시되었습니다.");
+								sdk_window.focus();
+							};
 						}
 					});
 				}
