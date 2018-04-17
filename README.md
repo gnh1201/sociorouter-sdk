@@ -1,7 +1,7 @@
 # sociorouter-sdk
 Software Development KIt (SDK) for SocioRouter and SocioPost.Net
 
-## Korean
+## 한국어
 개발자를 위한 SocioRouter 및 SocioPost.Net 소프트웨어 개발자 키트(SDK)입니다
 
 ## 구성
