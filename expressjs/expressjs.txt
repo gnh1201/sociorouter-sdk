@@ -1,0 +1,33 @@
+/*
+ * @file expressjs.txt
+ * @brief SocioPost Integration for Express.js
+ * @date 2018-05-09
+ * @author Go Namhyeon <gnh1201@gmail.com>
+ * @encoding utf-8
+ */
+
+// for express.js route
+router.get('/getSocioSdk', function(req, res) {
+    var options = {
+        host: 'sociopost.net',
+        port: 80,
+        path: '/assets/js/sdk.js'
+    };
+
+    http.get(options, function(res2) {
+        var body = "";
+        res2.on("data", function(chuck) {
+            body += chuck;
+        }).on("end", function(chuck) {
+            console.log("getSocioSdk: Got response " + res.statusCode);
+            res.setHeader("content-type", "text/javascript");
+            res.status(200);
+            res.send(body);
+        });
+    }).on("error", function(e) {
+        console.log("getSocioSdk: Get error " + e.message);
+    });
+});
+
+// for index.jade
+script(type='text/javascript', src='/[route]/getSocioSdk')
