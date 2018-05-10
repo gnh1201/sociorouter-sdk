@@ -1,7 +1,7 @@
 /*
  * @file expressjs.txt
  * @brief SocioPost Integration for Express.js
- * @date 2018-05-09
+ * @date 2018-05-10
  * @author Go Namhyeon <gnh1201@gmail.com>
  * @encoding utf-8
  */
@@ -29,5 +29,77 @@ router.get('/getSocioSdk', function(req, res) {
     });
 });
 
+router.get('/getEmailMd5/:email', function(req, res) {
+    var options = {
+        host: 'sociopost.net',
+        port: 80,
+        path: '/?route=md5&data=' + req.params.email
+    };
+
+    http.get(options, function(res2) {
+        var body = "";
+        res2.on("data", function(chuck) {
+            body += chuck;
+        }).on("end", function(chuck) {
+            console.log("getEamilMd5: Got response " + res.statusCode);
+            res.setHeader("content-type", "text/plain");
+            res.status(200);
+            res.send(body);
+        });
+    }).on("error", function(e) {
+        console.log("getEmailMd5: Get error " + e.message);
+    });
+});
+
+
 // for index.jade
 script(type='text/javascript', src='/[route]/getSocioSdk')
+
+// case study: angular.js, promise, modal
+$rootScope.showSocialNetwork = function() {
+	var msg1 = "SocialNetwork Auth";
+	var promise = authService.me();
+
+	promise.then(function (payload) {
+		$scope.userEmail = payload.result.userEmail;
+		$scope.userRole = payload.result.userRole;
+
+		$scope.openSocioModal();
+		setTimeout(function() {
+			$scope.loadSocioPost();
+		}, 300);
+	});
+
+	$scope.loadSocioPost = function() {
+		$http({
+			method: 'GET',
+			url: '/content/getEmailMd5/' + $scope.userEmail
+		}).then(function(response) {
+			sociorouter_set_site_url('https://autowein.com');
+			sociorouter_set_is_publish(false);
+
+			if($scope.userRole == 3) {
+				sociorouter_set_is_redirect(true);
+			}
+
+			sociorouter_remotelogin(response.data, {role: $scope.userRole, email: $scope.userEmail});
+
+			if($scope.userRole != 3) {
+				sociorouter_plugin('form_plugin', '@appendto:dom.id.sociorouter_form_plugin,');
+			}
+		});
+	};
+
+	$scope.openSocioModal = function() {
+		$uibModal.open({
+			animation: true,
+			templateUrl: '/views/socialnetwork.html',
+			controller: 'SocialNetworkCtrl',
+			resolve: {
+				msg1: function () {
+					return msg1;
+				},
+		   }
+		});
+	};
+};
