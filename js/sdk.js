@@ -18,6 +18,7 @@ var sociorouter_site_type = "";
 var sociorouter_plugin_url = "";
 var sociorouter_remote_id = "";
 var sociorouter_is_default_prevented = true;
+var sociorouter_is_publisher = true;
 
 // load jquery
 function load_jquery() {
@@ -127,14 +128,30 @@ function sociorouter_remotelogout_complete(value) {
 	// nothing
 }
 
+function sociorouter_set_is_publisher(value) {
+	sociorouter_is_publisher = value;
+}
+
+function sociorouter_build_query_string(obj) {
+	var qstr = "";
+	for(key in obj) {
+		qstr += "&";
+		qstr += key;
+		qstr += "=";
+		qstr += obj[key];
+	}
+	return (qstr.length > 0) ? qstr.substring(1) : qstr;
+}
+
 function sociorouter_remotelogin(username, data) {
-	var remotelogin_uri = sociorouter_base_url + "?route=remotelogin";
+	var remotelogin_uri = sociorouter_base_url;
 	var remotelogin_accesstoken = sociorouter_get_accesstoken();
 	var remotelogin_username = username;
 	var remotelogin_domain = sociorouter_get_current_domain();
 	var remotelogin_role = (typeof(data) !== "undefined") ? data.role : "";
 	var remotelogin_email = (typeof(data) !== "undefined") ? data.email : "";
 	var remotelogin_params = {
+		"route": "remotelogin",
 		"accesstoken": remotelogin_accesstoken,
 		"user_name": remotelogin_username,
 		"site_domain": remotelogin_domain,
@@ -151,10 +168,7 @@ function sociorouter_remotelogin(username, data) {
 
 			return;
 		} else {
-			for(var key in remotelogin_params) {
-				remotelogin_uri += ("&" + key + "=" + remotelogin_params[key]);
-			}
-
+			remotelogin_uri += "?" + sociorouter_build_query_string(remotelogin_params);
 			sociorouter_jsonp(remotelogin_uri, "sociorouter_remotelogin_complete");
 		}
 	};
@@ -375,7 +389,12 @@ function sociorouter_form_plugin(data) {
 
 		switch(name) {
 			case "appendto":
-				var iframe_src = sociorouter_base_url + "?route=sdk&action=connect&remote_id=" + sociorouter_remote_id;
+				var iframe_params = {
+					"route": "sdk",
+					"action": "connect",
+					"remote_id": sociorouter_remote_id
+				};
+				var iframe_src = sociorouter_base_url + "?" + sociorouter_build_query_string(iframe_params);
 				var iframe_obj = sociorouter_get_iframe_object(iframe_src, 700, 300);
 
 				// register social plugin object
@@ -564,11 +583,13 @@ function sociorouter_group_plugin(data) {
 
 		switch(name) {
 			case "appendto":
-				var iframe_src = sociorouter_base_url
-									+ "?route=sdk&action=group&group_name="
-									+ current_domain
-									+ "&site_url="
-									+ encodeURI(sociorouter_site_url);
+				var iframe_params = {
+					"route": "sdk",
+					"action": "group",
+					"group_name": current_domain,
+					"site_url": encodeURI(sociorouter_site_url)
+				};
+				var iframe_src = sociorouter_base_url + "?" + sociorouter_build_query_string(iframe_params);
 				var iframe_obj = sociorouter_get_iframe_object(iframe_src, 700, 1000);
 
 				// register social plugin object
